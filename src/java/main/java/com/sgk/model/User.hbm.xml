@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="com.sgk.model.User" table="user" schema="" catalog="sgk">
+        <id name="id">
+            <column name="id" sql-type="int" not-null="true"/>
+        </id>
+        <property name="username">
+            <column name="username" sql-type="varchar" length="16" not-null="true"/>
+        </property>
+        <property name="password">
+            <column name="password" sql-type="varchar" length="32" not-null="true"/>
+        </property>
+        <property name="lastLoginIp">
+            <column name="lastLoginIp" sql-type="varchar"/>
+        </property>
+        <property name="lastLoginUserAgent">
+            <column name="lastLoginUserAgent" sql-type="varchar"/>
+        </property>
+        <property name="keeplogin">
+            <column name="keeplogin" sql-type="varchar"/>
+        </property>
+        <property name="qq">
+            <column name="qq" sql-type="varchar" length="16"/>
+        </property>
+    </class>
+</hibernate-mapping>

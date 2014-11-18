@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+        "http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+    <constant name="struts.objectFactory" value="spring"/>
+    <constant name="struts.enable.DynamicMethodInvocation" value="false"/>
+    <constant name="struts.configuration.xml.reload" value="true"/>
+    <constant name="struts.action.extension" value="html"/>
+    <constant name="struts.devMode" value="true"/>
+    <!-- 拦截器定义 -->
+    <package name="PermissionsInterceptor" extends="json-default">
+        <interceptors>
+            <interceptor name="PermissionsInterceptor"
+                         class="com.sgk.interceptors.PermissionsInterceptor">
+            </interceptor>
+            <interceptor-stack name="PermissionsStack">
+                <interceptor-ref name="defaultStack"/>
+                <interceptor-ref name="PermissionsInterceptor"/>
+            </interceptor-stack>
+        </interceptors>
+    </package>
+
+    <!-- 主页 -->
+    <package name="index" namespace="/" extends="PermissionsInterceptor">
+        <default-action-ref name="main"/>
+        <action name="main" class="com.sgk.action.IndexAction" method="main">
+            <interceptor-ref name="PermissionsStack"/>
+            <result name="notLogon" type="redirect">/user/login.html</result>
+            <result name="main">/index/main.jsp</result>
+        </action>
+    </package>
+
+    <!-- 用户相关 -->
+    <package name="user" namespace="/user" extends="PermissionsInterceptor">
+        <action name="login" class="com.sgk.action.UserAction" method="login">
+            <interceptor-ref name="PermissionsStack"/>
+            <result name="hasLogon" type="redirect">/main.html</result>
+            <result name="notLogon">/user/login.jsp</result>
+        </action>
+        <action name="logout" class="com.sgk.action.UserAction" method="logout">
+            <result name="success" type="redirectAction">login</result>
+        </action>
+    </package>
+
+    <!-- ajax请求 -->
+    <package name="ajax" namespace="/ajax" extends="PermissionsInterceptor">
+        <!-- 登陆 -->
+        <action name="login" class="com.sgk.action.AjaxAction" method="login">
+            <interceptor-ref name="json" />
+            <result name="login" type="json">
+                <param name="root">jsonInfo</param>
+            </result>
+        </action>
+        <!-- 搜索 -->
+        <action name="search" class="com.sgk.action.AjaxAction" method="search">
+            <interceptor-ref name="json"/>
+            <interceptor-ref name="PermissionsInterceptor"/>
+            <result name="notLogon" type="redirect">/error/notlogon.html</result>
+            <result name="search" type="json">
+                <param name="root">jsonInfo</param>
+            </result>
+        </action>
+    </package>
+
+    <!-- 返回json错误信息 -->
+    <package name="error" namespace="/error" extends="json-default">
+        <action name="*" class="com.sgk.action.ErrorJsonAction" method="{1}">
+            <interceptor-ref name="json"/>
+            <result type="json">
+                <param name="root">jsonInfo</param>
+            </result>
+        </action>
+    </package>
+</struts>

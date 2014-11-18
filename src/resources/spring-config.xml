@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd
+                           http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <!-- Dao BEAN -->
+    <bean id="userDao" class="com.sgk.dao.impl.UserDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="logDao" class="com.sgk.dao.impl.LogDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="searchDao" class="com.sgk.dao.impl.SearchDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!-- Service BEAN -->
+    <bean id="userService" class="com.sgk.service.impl.UserServiceImpl">
+        <property name="logDao" ref="logDao"/>
+        <property name="userDao" ref="userDao"/>
+    </bean>
+    <bean id="searchService" class="com.sgk.service.impl.SearchServiceImpl">
+        <property name="searchDao" ref="searchDao"/>
+    </bean>
+
+
+    <!-- other BEAN -->
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/sgk?useUnicode=true&amp;characterEncoding=UTF-8"/>
+        <property name="username" value="root"/>
+        <property name="password" value="******"/>
+    </bean>
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="mappingLocations">
+            <list>
+                <value>classpath:com/sgk/model/Log.hbm.xml</value>
+                <value>classpath:com/sgk/model/Search.hbm.xml</value>
+                <value>classpath:com/sgk/model/User.hbm.xml</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+                <prop key="hibernate.show_sql">true</prop>
+            </props>
+        </property>
+    </bean>
+    <bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean class="org.springframework.orm.hibernate4.HibernateTemplate" id="hibernateTemplate">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!-- 所有service都添加事务-->
+    <aop:config>
+        <aop:pointcut id="bussinessService" expression="execution(public * com.sgk.service..*.*(..))"/>
+        <aop:advisor pointcut-ref="bussinessService" advice-ref="transactionInterceptor"/>
+    </aop:config>
+
+    <tx:advice transaction-manager="transactionManager" id="transactionInterceptor">
+        <tx:attributes>
+            <tx:method name="*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+
+</beans>
